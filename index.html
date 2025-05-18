@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calcolatore Ipergeometrico</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #1e1e2f;
+      color: #f0f0f0;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      overflow-y: auto;
+    }
+
+    .layout {
+      display: flex;
+      width: 100%;
+      max-width: 1200px;
+      min-height: 100vh;
+    }
+
+    .side-banner {
+      flex: 0 0 150px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .side-banner img {
+      max-height: 95vh;
+      max-width: 100%;
+      height: auto;
+      width: auto;
+      object-fit: contain;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(255,255,255,0.1);
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      color: #f9b234;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    form {
+      background: #2e2e40;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      max-width: 400px;
+      width: 100%;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 1rem;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 0.5rem;
+      border-radius: 6px;
+      border: none;
+      margin-top: 0.25rem;
+      background: #444;
+      color: #f0f0f0;
+      font-size: 1rem;
+    }
+
+    button {
+      background: #f9b234;
+      color: #1e1e2f;
+      border: none;
+      padding: 0.7rem 1.2rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 1rem;
+      width: 100%;
+      transition: background 0.3s ease;
+      font-size: 1rem;
+    }
+
+    button:hover {
+      background: #ffcb52;
+    }
+
+    h2 {
+      margin-top: 2rem;
+      color: #82eefd;
+    }
+
+    p {
+      background: #2a2a3d;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      margin: 0.5rem 0;
+      max-width: 400px;
+      width: 100%;
+    }
+
+    #fullConsistency {
+      display: none;
+      text-align: center;
+      margin-top: 2rem;
+    }
+
+    #fullConsistency h2 {
+      color: #f9b234;
+    }
+
+    @media screen and (max-width: 900px) {
+      .side-banner {
+        display: none;
+      }
+
+      .layout {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .main-content {
+        padding: 1rem 0.5rem;
+      }
+
+      form, p {
+        width: 100%;
+        max-width: 100%;
+      }
+
+      input[type="number"], button {
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+  <div class="side-banner">
+    <img src="mano brutta.jpg" alt="Sinistra">
+  </div>
+
+  <div class="main-content">
+    <h1>🔥 Calcolatore Ipergeometrico 🔥</h1>
+
+    <form id="calculator">
+      <label>Dimensione del mazzo (N):
+        <input type="number" id="deckSize" required>
+      </label>
+      <label>Carte desiderate nel mazzo (K):
+        <input type="number" id="desiredCards" required>
+      </label>
+      <label>Carte pescate (n):
+        <input type="number" id="cardsDrawn" required>
+      </label>
+      <label>Carte desiderate pescate (k):
+        <input type="number" id="desiredDrawn" required>
+      </label>
+      <button type="submit">Calcola</button>
+    </form>
+
+    <h2>Risultati</h2>
+    <p id="prob0"></p>
+    <p id="probExact"></p>
+    <p id="probLT"></p>
+    <p id="probLE"></p>
+    <p id="probGT"></p>
+    <p id="probGE"></p>
+
+    <div id="fullConsistency">
+      <h2>🔥 FULL CONSISTENCY 🔥</h2>
+    </div>
+  </div>
+
+  <div class="side-banner">
+    <img src="mano buona.jpg" alt="Destra">
+  </div>
+</div>
+
+<script>
+  function factorial(n) {
+    if (n < 0) return 0;
+    return n <= 1 ? 1 : n * factorial(n - 1);
+  }
+
+  function combination(n, k) {
+    if (k < 0 || k > n) return 0;
+    return factorial(n) / (factorial(k) * factorial(n - k));
+  }
+
+  function hypergeometric(N, K, n, k) {
+    return (combination(K, k) * combination(N - K, n - k)) / combination(N, n);
+  }
+
+  document.getElementById('calculator').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const N = parseInt(document.getElementById('deckSize').value);
+    const K = parseInt(document.getElementById('desiredCards').value);
+    const n = parseInt(document.getElementById('cardsDrawn').value);
+    const k = parseInt(document.getElementById('desiredDrawn').value);
+
+    let prob0 = hypergeometric(N, K, n, 0);
+    let probExact = hypergeometric(N, K, n, k);
+
+    let probLE = 0, probGE = 0, probLT = 0, probGT = 0;
+    const maxSuccesses = Math.min(n, K);
+
+    for (let i = 0; i <= maxSuccesses; i++) {
+      let p = hypergeometric(N, K, n, i);
+      if (i <= k) probLE += p;
+      if (i >= k) probGE += p;
+      if (i < k) probLT += p;
+      if (i > k) probGT += p;
+    }
+
+    document.getElementById('prob0').textContent =
+      `🎯 Probabilità di pescarne 0: ${(prob0 * 100).toFixed(2)}%`;
+
+    document.getElementById('probExact').textContent =
+      `🎯 Probabilità di pescarne esattamente ${k}: ${(probExact * 100).toFixed(2)}%`;
+
+    document.getElementById('probLT').textContent =
+      `🔽 Probabilità di pescarne < ${k}: ${(probLT * 100).toFixed(2)}%`;
+
+    document.getElementById('probLE').textContent =
+      `🔽 Probabilità di pescarne ≤ ${k}: ${(probLE * 100).toFixed(2)}%`;
+
+    document.getElementById('probGT').textContent =
+      `🔼 Probabilità di pescarne > ${k}: ${(probGT * 100).toFixed(2)}%`;
+
+    document.getElementById('probGE').textContent =
+      `🔼 Probabilità di pescarne ≥ ${k}: ${(probGE * 100).toFixed(2)}%`;
+
+    const fullConsistencyDiv = document.getElementById('fullConsistency');
+    if (k === 2 && probExact > 0.6) {
+      fullConsistencyDiv.style.display = 'block';
+    } else {
+      fullConsistencyDiv.style.display = 'none';
+    }
+  });
+</script>
+</body>
+</html>
